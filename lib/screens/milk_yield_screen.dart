@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/app_drawer.dart';
+import '../widgets/user_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
 
 // ─────────────────────────────────────────────
@@ -67,18 +67,9 @@ class _MilkYieldScreenState extends State<MilkYieldScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
+      drawer: const UserDrawer(),
       backgroundColor: _bg,
       appBar: _buildAppBar(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddYieldDialog,
-        backgroundColor: _primaryGreen,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Log Entry',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -577,80 +568,6 @@ class _MilkYieldScreenState extends State<MilkYieldScreen> {
             }),
           ),
         ],
-      ),
-    );
-  }
-
-  // ── Add Yield Dialog ──────────────────────────────────────
-  void _showAddYieldDialog() {
-    String session = 'Morning';
-    final litersCtrl = TextEditingController(text: '12.5');
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text(
-            'Log Milk Production',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'Morning', label: Text('Morning')),
-                  ButtonSegment(value: 'Evening', label: Text('Evening')),
-                ],
-                selected: {session},
-                onSelectionChanged: (val) {
-                  setDialogState(() => session = val.first);
-                },
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: litersCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'Liters Collected',
-                  suffixText: 'L',
-                  prefixIcon: Icon(Icons.water_drop_outlined),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final added = double.tryParse(litersCtrl.text) ?? 0.0;
-                setState(() {
-                  if (session == 'Morning') {
-                    _todayMorningLiters += added;
-                  } else {
-                    _todayEveningLiters += added;
-                  }
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: _primaryGreen,
-                    content: Text('Added ${added.toStringAsFixed(1)}L to $session production!'),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primaryGreen,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: const Text('Save Log', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
       ),
     );
   }

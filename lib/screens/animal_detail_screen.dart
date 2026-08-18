@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/app_drawer.dart';
+import '../widgets/user_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'animal_gallery_screen.dart';
 import 'animal_listing_screen.dart';
@@ -111,7 +111,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
     final location = widget.animal?.location ?? 'Stable Block A | Pen 04';
 
     return Scaffold(
-      drawer: const AppDrawer(),
+      drawer: const UserDrawer(),
       backgroundColor: const Color(0xFFEFF6F1),
       appBar: _buildAppBar(),
       body: SingleChildScrollView(

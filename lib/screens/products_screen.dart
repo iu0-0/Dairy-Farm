@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/app_drawer.dart';
+import '../widgets/user_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
 
 // ─────────────────────────────────────────────
@@ -128,18 +128,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
+      drawer: const UserDrawer(),
       backgroundColor: _bg,
       appBar: _buildAppBar(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddProductDialog,
-        backgroundColor: _primaryGreen,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Add Product',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,91 +378,4 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 
-  // ── Add Product Dialog ───────────────────────────────────
-  void _showAddProductDialog() {
-    final titleCtrl = TextEditingController();
-    final priceCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
-    String category = 'Milk & Curd';
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('Add New Farm Product'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleCtrl,
-                decoration: const InputDecoration(labelText: 'Product Name'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: priceCtrl,
-                decoration: const InputDecoration(labelText: 'Price (e.g. ₹90 / L)'),
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                initialValue: category,
-                items: const [
-                  DropdownMenuItem(value: 'Milk & Curd', child: Text('Milk & Curd')),
-                  DropdownMenuItem(value: 'Ghee & Butter', child: Text('Ghee & Butter')),
-                  DropdownMenuItem(value: 'Paneer & Cheese', child: Text('Paneer & Cheese')),
-                ],
-                onChanged: (val) {
-                  if (val != null) setDialogState(() => category = val);
-                },
-                decoration: const InputDecoration(labelText: 'Category'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: descCtrl,
-                decoration: const InputDecoration(labelText: 'Product Description'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (titleCtrl.text.isNotEmpty) {
-                  setState(() {
-                    _products.add(
-                      DairyProduct(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        title: titleCtrl.text,
-                        priceText: priceCtrl.text.isEmpty ? '₹100' : priceCtrl.text,
-                        imagePath: 'assets/images/dairy_logo.png',
-                        badgeText: 'NEW',
-                        badgeBg: _primaryGreen,
-                        category: category,
-                        description: descCtrl.text.isEmpty ? 'Farm fresh product' : descCtrl.text,
-                      ),
-                    );
-                  });
-                }
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: _primaryGreen,
-                    content: Text('New product added to catalog!'),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primaryGreen,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: const Text('Save Product', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

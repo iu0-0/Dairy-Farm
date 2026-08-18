@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import '../widgets/app_drawer.dart';
+import '../widgets/user_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
-import '../utils/smooth_page_route.dart';
 import 'about_screen.dart';
-import 'admin_panel_screen.dart';
 
 // ─────────────────────────────────────────────
 // User Profile Screen
@@ -17,7 +15,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   String _userName = 'Rahul Sharma';
-  String _userRole = 'Farm Owner & Manager';
+  String _userRole = 'Verified Customer Account';
   String _userPhone = '+91 98765 43210';
   String _userLocation = 'Pune, Maharashtra';
   bool _notificationsEnabled = true;
@@ -30,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
+      drawer: const UserDrawer(),
       backgroundColor: _bg,
       appBar: _buildAppBar(),
       body: SingleChildScrollView(
@@ -46,51 +44,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 24),
 
-            // ── Farm Management Section ──
-            _buildSectionLabel('FARM MANAGEMENT'),
+            // ── Customer Details Section ──
+            _buildSectionLabel('CUSTOMER DASHBOARD'),
             _buildMenuCard([
-              _buildMenuRow(
-                iconBg: const Color(0xFF0C3823).withOpacity(0.12),
-                iconColor: const Color(0xFF0C3823),
-                icon: Icons.admin_panel_settings_outlined,
-                title: 'Admin Control Center',
-                subtitle: 'Manage herd, staff roles, pricing & system logs',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    SmoothPageRoute(
-                      page: const AdminPanelScreen(),
-                      settings: const RouteSettings(name: '/admin'),
-                    ),
-                  );
-                },
-              ),
-              _buildDivider(),
               _buildMenuRow(
                 iconBg: const Color(0xFFDCFCE7),
                 iconColor: const Color(0xFF16A34A),
-                icon: Icons.agriculture_outlined,
-                title: 'Farm & Barn Details',
-                subtitle: 'Manage livestock inventory & barn zones',
-                onTap: () => _showInfoSnack('Farm Details'),
+                icon: Icons.shopping_bag_outlined,
+                title: 'My Orders & Subscriptions',
+                subtitle: 'Track daily milk delivery & order history',
+                onTap: () => _showInfoSnack('My Orders'),
               ),
               _buildDivider(),
               _buildMenuRow(
                 iconBg: const Color(0xFFE0F2FE),
                 iconColor: const Color(0xFF0284C7),
-                icon: Icons.people_outline,
-                title: 'Staff & Workers',
-                subtitle: '25 active farm personnel',
-                onTap: () => _showInfoSnack('Staff Roster'),
+                icon: Icons.location_on_outlined,
+                title: 'Delivery Addresses',
+                subtitle: 'Manage home & office delivery locations',
+                onTap: () => _showInfoSnack('Delivery Addresses'),
+              ),
+              _buildDivider(),
+              _buildMenuRow(
+                iconBg: const Color(0xFFF3E8FF),
+                iconColor: const Color(0xFF9333EA),
+                icon: Icons.payment_outlined,
+                title: 'Payment Methods',
+                subtitle: 'UPI, Debit/Credit cards & Net banking',
+                onTap: () => _showInfoSnack('Payment Methods'),
               ),
               _buildDivider(),
               _buildMenuRow(
                 iconBg: const Color(0xFFFEF3C7),
                 iconColor: const Color(0xFFD97706),
-                icon: Icons.file_download_outlined,
-                title: 'Export Reports',
-                subtitle: 'PDF/Excel milk yield & feed logs',
-                onTap: () => _showExportDialog(),
+                icon: Icons.favorite_border,
+                title: 'My Wishlist',
+                subtitle: 'Saved dairy products & seasonal offers',
+                onTap: () => _showInfoSnack('Wishlist'),
+              ),
+              _buildDivider(),
+              _buildMenuRow(
+                iconBg: const Color(0xFFE0F2FE),
+                iconColor: const Color(0xFF0284C7),
+                icon: Icons.support_agent_outlined,
+                title: 'Help & Support',
+                subtitle: 'Customer care, FAQs & feedback',
+                onTap: () => _showInfoSnack('Help & Support'),
               ),
             ]),
 
@@ -612,43 +611,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             child: const Text('Save Changes', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Export Dialog ────────────────────────────────────────
-  void _showExportDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Export Farm Reports'),
-        content: const Text(
-          'Export monthly milk production, animal health records, and feed inventory to PDF or Excel format?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  backgroundColor: _primaryGreen,
-                  content: Text('Farm report generated and saved to downloads!'),
-                ),
-              );
-            },
-            icon: const Icon(Icons.download, color: Colors.white, size: 18),
-            label: const Text('Export PDF', style: TextStyle(color: Colors.white)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primaryGreen,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
           ),
         ],
       ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/app_drawer.dart';
+import '../widgets/user_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
 
 // ─────────────────────────────────────────────
@@ -104,18 +104,9 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
+      drawer: const UserDrawer(),
       backgroundColor: _bg,
       appBar: _buildAppBar(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showRestockDialog,
-        backgroundColor: _primaryGreen,
-        icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
-        label: const Text(
-          'Restock Feed',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,74 +380,6 @@ class _FeedScreenState extends State<FeedScreen> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  // ── Restock Feed Dialog ──────────────────────────────────
-  void _showRestockDialog() {
-    FeedItem selectedItem = _feedItems.first;
-    final qtyCtrl = TextEditingController(text: '200');
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('Restock Feed Inventory'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<FeedItem>(
-                initialValue: selectedItem,
-                items: _feedItems
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e.title)))
-                    .toList(),
-                onChanged: (val) {
-                  if (val != null) setDialogState(() => selectedItem = val);
-                },
-                decoration: const InputDecoration(labelText: 'Feed Type'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: qtyCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Added Quantity (kg)',
-                  suffixText: 'kg',
-                  prefixIcon: Icon(Icons.add_circle_outline),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final added = int.tryParse(qtyCtrl.text) ?? 0;
-                setState(() {
-                  selectedItem.currentStockKg = (selectedItem.currentStockKg + added)
-                      .clamp(0, selectedItem.totalCapacityKg);
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: _primaryGreen,
-                    content: Text('Restocked ${selectedItem.title} by ${added}kg!'),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primaryGreen,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: const Text('Restock Stock', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
       ),
     );
   }

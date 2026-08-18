@@ -1,17 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../widgets/app_drawer.dart';
+import '../widgets/user_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
-import '../utils/smooth_page_route.dart';
 import 'animal_listing_screen.dart';
 import 'milk_yield_screen.dart';
 import 'health_screen.dart';
 import 'feed_screen.dart';
-import 'admin_panel_screen.dart';
 
 
 // ─────────────────────────────────────────────
-// HomeScreen — Farm Dashboard (Premium)
+// HomeScreen — Farm Dashboard (Customer View)
 // ─────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -128,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bg,
-      drawer: const AppDrawer(),
+      drawer: const UserDrawer(),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -244,19 +242,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ],
       ),
       actions: [
-        IconButton(
-          tooltip: 'Admin Control Center',
-          icon: const Icon(Icons.admin_panel_settings, color: Color(0xFF86EFAC), size: 22),
-          onPressed: () {
-            Navigator.push(
-              context,
-              SmoothPageRoute(
-                page: const AdminPanelScreen(),
-                settings: const RouteSettings(name: '/admin'),
-              ),
-            );
-          },
-        ),
         Stack(
           alignment: Alignment.topRight,
           children: [
@@ -856,7 +841,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       onTap: () => Navigator.push(context,
           MaterialPageRoute(builder: (_) => const MilkYieldScreen())),
       child: Container(
-        height: 130,
+        height: 145,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
@@ -903,46 +888,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
               // Content
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Today's Total Milk",
-                            style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500)),
-                        const SizedBox(height: 4),
-                        const Text('312 Litres',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _accent.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text("Today's Total Milk",
+                              style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 2),
+                          const Text('312 Litres',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w900)),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _accent.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              '↑ 4.2% from yesterday',
+                              style: TextStyle(
+                                  color: Color(0xFF86EFAC),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700),
+                            ),
                           ),
-                          child: const Text(
-                            '↑ 4.2% from yesterday',
-                            style: TextStyle(
-                                color: Color(0xFF86EFAC),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     Container(
-                      width: 58,
-                      height: 58,
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(16),
@@ -951,7 +939,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             width: 1.5),
                       ),
                       child: const Icon(Icons.water_drop,
-                          size: 32, color: Colors.white),
+                          size: 28, color: Colors.white),
                     ),
                   ],
                 ),

@@ -32,13 +32,18 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim().toLowerCase();
-      // If email contains 'admin' or user entered admin credentials, open Admin Panel
-      if (email.contains('admin') || email == 'admin@krishnadairy.com') {
+      if (email.contains('admin')) {
         Navigator.pushReplacementNamed(context, '/admin');
       } else {
         Navigator.pushReplacementNamed(context, '/home');
       }
     }
+  }
+
+  void _loginAsCustomer() {
+    _emailController.text = 'customer@krishnadairy.com';
+    _passwordController.text = 'customer123';
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   void _loginAsAdmin() {
@@ -331,59 +336,68 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 24),
-
                             // ── Log In Button ──
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: _handleLogin,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0C3823),
-                                  foregroundColor: Colors.white,
-                                  elevation: 1,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Log In',
-                                  style: TextStyle(
-                                    fontSize: 15.5,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
+                             SizedBox(
+                               width: double.infinity,
+                               height: 48,
+                               child: ElevatedButton.icon(
+                                 onPressed: _handleLogin,
+                                 icon: const Icon(Icons.login, color: Colors.white, size: 20),
+                                 label: const Text(
+                                   'Log In to App',
+                                   style: TextStyle(
+                                     fontSize: 15,
+                                     fontWeight: FontWeight.bold,
+                                   ),
+                                 ),
+                                 style: ElevatedButton.styleFrom(
+                                   backgroundColor: const Color(0xFF0C3823),
+                                   foregroundColor: Colors.white,
+                                   elevation: 1,
+                                   shape: RoundedRectangleBorder(
+                                     borderRadius: BorderRadius.circular(10),
+                                   ),
+                                 ),
+                               ),
+                             ),
+                             const SizedBox(height: 12),
 
-                            // ── Admin Portal Direct Login Button ──
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton.icon(
-                                onPressed: _loginAsAdmin,
-                                icon: const Icon(Icons.admin_panel_settings, color: Colors.white, size: 20),
-                                label: const Text(
-                                  'Log In as Farm Admin',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF14532D),
-                                  elevation: 2,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    side: const BorderSide(color: Color(0xFF22C55E), width: 1),
-                                  ),
-                                ),
-                              ),
-                            ),
+                             // ── Dedicated Portal Quick Launchers ──
+                             Row(
+                               children: [
+                                 Expanded(
+                                   child: OutlinedButton.icon(
+                                     onPressed: _loginAsCustomer,
+                                     icon: const Icon(Icons.shopping_bag_outlined, size: 16, color: Color(0xFF0C3823)),
+                                     label: const Text(
+                                       'Customer App',
+                                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0C3823)),
+                                     ),
+                                     style: OutlinedButton.styleFrom(
+                                       padding: const EdgeInsets.symmetric(vertical: 12),
+                                       side: const BorderSide(color: Color(0xFF0C3823)),
+                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                     ),
+                                   ),
+                                 ),
+                                 const SizedBox(width: 10),
+                                 Expanded(
+                                   child: ElevatedButton.icon(
+                                     onPressed: _loginAsAdmin,
+                                     icon: const Icon(Icons.admin_panel_settings, color: Colors.white, size: 16),
+                                     label: const Text(
+                                       'Admin Portal',
+                                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                                     ),
+                                     style: ElevatedButton.styleFrom(
+                                       padding: const EdgeInsets.symmetric(vertical: 12),
+                                       backgroundColor: const Color(0xFF14532D),
+                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                     ),
+                                   ),
+                                 ),
+                               ],
+                             ),
                             const SizedBox(height: 20),
 
                             // ── Divider ──

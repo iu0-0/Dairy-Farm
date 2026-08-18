@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/smooth_page_route.dart';
+import '../utils/user_session.dart';
 import '../screens/animal_gallery_screen.dart';
 import '../screens/animal_listing_screen.dart';
 import '../screens/breed_catalog_screen.dart';
@@ -19,87 +20,117 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentRouteName = ModalRoute.of(context)?.settings.name;
 
-    return Drawer(
-      backgroundColor: const Color(0xFFEFF6F1),
-      child: Column(
-        children: [
-          // ── Drawer Header ──
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-            decoration: const BoxDecoration(
-              color: Color(0xFF0C3823),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+    return ListenableBuilder(
+      listenable: globalUserSession,
+      builder: (context, _) {
+        return Drawer(
+          backgroundColor: const Color(0xFFEFF6F1),
+          child: Column(
+            children: [
+              // ── Drawer Header ──
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF0C3823),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: const Color(0xFF86EFAC),
-                      child: ClipOval(
-                        child: Image.asset(
-                          'assets/images/dairy_logo.png',
-                          height: 52,
-                          width: 52,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Text(
-                            'K',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0C3823),
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 26,
+                          backgroundColor: const Color(0xFF86EFAC),
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/images/dairy_logo.png',
+                              height: 52,
+                              width: 52,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => const Text(
+                                'K',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0C3823),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Krishna Dairy Farm',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                globalUserSession.isAdmin ? 'admin@krishnadairy.com' : 'customer@krishnadairy.com',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 11.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Krishna Dairy Farm',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                    const SizedBox(height: 14),
+                    // ── Active Role Chip ──
+                    InkWell(
+                      onTap: () {
+                        globalUserSession.toggleRole();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              globalUserSession.isAdmin
+                                  ? 'Switched to Admin Mode (Full CRUD Unlocked)'
+                                  : 'Switched to Standard User Mode (Clean Read-Only View)',
                             ),
+                            duration: const Duration(seconds: 2),
                           ),
-                          SizedBox(height: 2),
-                          Text(
-                            'karan@krishnadairy.com',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 11.5,
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: globalUserSession.isAdmin ? const Color(0xFF22C55E).withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: globalUserSession.isAdmin ? const Color(0xFF22C55E) : Colors.white24,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              globalUserSession.isAdmin ? '👑 Admin Mode (Active)' : '👤 Standard User Mode',
+                              style: TextStyle(
+                                color: globalUserSession.isAdmin ? const Color(0xFF86EFAC) : Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 6),
+                            const Icon(Icons.sync, size: 13, color: Colors.white70),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    '★ Premium Farm Account',
-                    style: TextStyle(
-                      color: Color(0xFF86EFAC),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
 
           // ── Navigation Menu Items ──
           Expanded(
@@ -318,8 +349,10 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
