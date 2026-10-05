@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../widgets/user_drawer.dart';
+import '../widgets/admin_drawer.dart';
+import '../utils/user_session.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/cow_head_icon.dart';
 
 // ─────────────────────────────────────────────
 // Top Performer Model
@@ -67,7 +70,7 @@ class _MilkYieldScreenState extends State<MilkYieldScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const UserDrawer(),
+      drawer: globalUserSession.isAdmin ? const AdminDrawer() : const UserDrawer(),
       backgroundColor: _bg,
       appBar: _buildAppBar(),
       body: SingleChildScrollView(
@@ -532,7 +535,7 @@ class _MilkYieldScreenState extends State<MilkYieldScreen> {
                         errorBuilder: (_, __, ___) => const CircleAvatar(
                           radius: 19,
                           backgroundColor: _primaryGreen,
-                          child: Icon(Icons.pets, size: 20, color: Colors.white),
+                          child: CowHeadIcon(size: 20, color: Colors.white),
                         ),
                       ),
                     ),

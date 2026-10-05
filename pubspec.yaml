@@ -10,6 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  http: ^1.6.0
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
@@ -18,12 +20,18 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
 
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: true
+  ios: false
+  image_path: "assets/images/dairy_logo.png"
+  adaptive_icon_background: "#0C3823"
+  adaptive_icon_foreground: "assets/images/dairy_logo.png"
+  web:
+    generate: true
+    image_path: "assets/images/dairy_logo.png"
   windows:
     generate: true
-    image_path: "assets/images/krishna_logo.png"
+    image_path: "assets/images/dairy_logo.png"
     icon_size: 48
-  image_path: "assets/images/krishna_logo.png"
 
 flutter:
   uses-material-design: true

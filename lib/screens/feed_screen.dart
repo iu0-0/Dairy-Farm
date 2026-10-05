@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/user_drawer.dart';
+import '../widgets/admin_drawer.dart';
+import '../utils/user_session.dart';
 import '../widgets/bottom_nav_bar.dart';
 
 // ─────────────────────────────────────────────
@@ -104,7 +106,7 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const UserDrawer(),
+      drawer: globalUserSession.isAdmin ? const AdminDrawer() : const UserDrawer(),
       backgroundColor: _bg,
       appBar: _buildAppBar(),
       body: SingleChildScrollView(

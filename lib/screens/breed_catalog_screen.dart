@@ -1,41 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../widgets/user_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/cow_head_icon.dart';
+import '../models/breed_model.dart';
+import '../services/api_service.dart';
 
-// ─────────────────────────────────────────────
-// Breed Model
-// ─────────────────────────────────────────────
-class DairyBreed {
-  final String id;
-  final String name;
-  final String badge;
-  final String imagePath;
-  final String description;
-  final String origin;
-  final String avgYield;
-  final String fatContent;
-  final String diseaseResistance;
-  final double resistanceScore;
-  final String category;
-
-  const DairyBreed({
-    required this.id,
-    required this.name,
-    required this.badge,
-    required this.imagePath,
-    required this.description,
-    required this.origin,
-    required this.avgYield,
-    required this.fatContent,
-    required this.diseaseResistance,
-    required this.resistanceScore,
-    required this.category,
-  });
-}
-
-// ─────────────────────────────────────────────
-// Breed Encyclopedia Screen
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Breed Catalog Screen — loads breeds from API
+// ─────────────────────────────────────────────────────────────────────────────
 class BreedCatalogScreen extends StatefulWidget {
   const BreedCatalogScreen({super.key});
 
@@ -52,77 +24,25 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
 
   final List<String> _filters = ['All Breeds', 'Cattle Breeds', 'Buffalo Breeds'];
 
-  final List<DairyBreed> _breeds = const [
-    DairyBreed(
-      id: 'b1',
-      name: 'Gir Cow',
-      badge: 'Popular Native Indian',
-      imagePath: 'assets/images/gir_cow.png',
-      description:
-          'The Gir is one of the principal Zebu breeds originating in India. Known for its high tolerance to tropical heat and resistance to diseases, it produces A2 nutrient-rich milk.',
-      origin: 'Gujarat, India',
-      avgYield: '1,500 - 2,500 L / yr',
-      fatContent: '4.5% - 5.0%',
-      diseaseResistance: 'High',
-      resistanceScore: 0.90,
-      category: 'Cow',
-    ),
-    DairyBreed(
-      id: 'b2',
-      name: 'Holstein Friesian',
-      badge: 'Top Yield Producer',
-      imagePath: 'assets/images/holstein_friesian.png',
-      description:
-          'Holstein Friesian cattle are the highest-production dairy animals in the world. Recognizable by their distinctive black-and-white markings, ideal for high yield operations.',
-      origin: 'Friesland, Netherlands',
-      avgYield: '7,000 - 10,000 L / yr',
-      fatContent: '3.5% - 3.8%',
-      diseaseResistance: 'Moderate',
-      resistanceScore: 0.75,
-      category: 'Cow',
-    ),
-    DairyBreed(
-      id: 'b3',
-      name: 'Jersey Purebred',
-      badge: 'High Butterfat Content',
-      imagePath: 'assets/images/jersey_cow.png',
-      description:
-          'Jerseys are famous for high butterfat content in milk and lower maintenance costs due to smaller body mass and superior feed conversion efficiency.',
-      origin: 'Island of Jersey, UK',
-      avgYield: '4,500 - 6,000 L / yr',
-      fatContent: '5.0% - 5.5%',
-      diseaseResistance: 'High',
-      resistanceScore: 0.85,
-      category: 'Cow',
-    ),
-    DairyBreed(
-      id: 'b4',
-      name: 'Murrah Buffalo',
-      badge: 'Premier Buffalo',
-      imagePath: 'assets/images/murrah_buffalo.png',
-      description:
-          'The Murrah is the premier water buffalo breed of India, renowned for jet-black color, tightly curved horns, and exceptionally rich milk ideal for ghee and paneer.',
-      origin: 'Haryana & Punjab, India',
-      avgYield: '2,500 - 3,500 L / yr',
-      fatContent: '7.0% - 8.0%',
-      diseaseResistance: 'Very High',
-      resistanceScore: 0.95,
-      category: 'Buffalo',
-    ),
-  ];
+  // ── State ──
+  List<Breed> _breeds = [];
+  bool _loading = true;
+  String? _error;
 
-  List<DairyBreed> get _filteredBreeds {
-    return _breeds.where((b) {
-      if (_selectedFilterIndex == 1 && b.category != 'Cow') return false;
-      if (_selectedFilterIndex == 2 && b.category != 'Buffalo') return false;
+  @override
+  void initState() {
+    super.initState();
+    _loadBreeds();
+  }
 
-      final query = _searchController.text.toLowerCase().trim();
-      if (query.isNotEmpty) {
-        return b.name.toLowerCase().contains(query) ||
-            b.origin.toLowerCase().contains(query);
-      }
-      return true;
-    }).toList();
+  Future<void> _loadBreeds() async {
+    try {
+      setState(() { _loading = true; _error = null; });
+      final breeds = await apiService.getBreeds();
+      if (mounted) setState(() { _breeds = breeds; _loading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+    }
   }
 
   @override
@@ -131,72 +51,70 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
     super.dispose();
   }
 
+  List<Breed> get _filteredBreeds {
+    var list = _breeds;
+
+    // Filter by category keyword
+    if (_selectedFilterIndex == 1) {
+      // Cattle: exclude buffalo types
+      list = list.where((b) {
+        final t = (b.animalTypeName ?? b.name).toLowerCase();
+        return !t.contains('buffalo');
+      }).toList();
+    } else if (_selectedFilterIndex == 2) {
+      list = list.where((b) {
+        final t = (b.animalTypeName ?? b.name).toLowerCase();
+        return t.contains('buffalo');
+      }).toList();
+    }
+
+    // Search
+    final q = _searchController.text.trim().toLowerCase();
+    if (q.isNotEmpty) {
+      list = list.where((b) => b.name.toLowerCase().contains(q)).toList();
+    }
+
+    return list;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const UserDrawer(),
       backgroundColor: _bg,
-      appBar: _buildAppBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Reference Library Header Section ──
-            _buildHeaderSection(),
-
-            // ── Filter Buttons Row ──
-            _buildActionButtonsRow(),
-
-            const SizedBox(height: 14),
-
-            // ── Breeds List ──
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: _filteredBreeds.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  return _buildBreedCard(_filteredBreeds[index]);
-                },
-              ),
-            ),
-
-            const SizedBox(height: 32),
-          ],
+      drawer: const UserDrawer(),
+      appBar: AppBar(
+        backgroundColor: _primaryGreen,
+        elevation: 0,
+        title: const Text(
+          'Breed Catalog',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
         ),
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: _loadBreeds,
+          ),
+        ],
       ),
-      bottomNavigationBar: const DairyBottomNavBar(selectedIndex: -1),
+      body: Column(
+        children: [
+          _buildHeader(),
+          _buildSearchBar(),
+          _buildFilterChips(),
+          Expanded(child: _buildBody()),
+        ],
+      ),
+      bottomNavigationBar: const DairyBottomNavBar(selectedIndex: 0),
     );
   }
 
-  // ── AppBar ──────────────────────────────────────────────
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: _primaryGreen,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      leading: Builder(
-        builder: (context) => IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white, size: 22),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
-      ),
-      title: const Text(
-        'Breed Encyclopedia',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-        ),
-      ),
-      centerTitle: true,
-    );
-  }
-
-  // ── Header Section ──────────────────────────────────────
-  Widget _buildHeaderSection() {
+  Widget _buildHeader() {
     return Container(
       color: Colors.white,
       width: double.infinity,
@@ -237,8 +155,29 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
     );
   }
 
-  // ── Action Buttons Row ──────────────────────────────────
-  Widget _buildActionButtonsRow() {
+  Widget _buildSearchBar() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (_) => setState(() {}),
+        decoration: InputDecoration(
+          hintText: 'Search breed name...',
+          prefixIcon: const Icon(Icons.search, color: Color(0xFF9CA3AF)),
+          filled: true,
+          fillColor: const Color(0xFFF3F4F6),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChips() {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
@@ -259,9 +198,7 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
                 backgroundColor: const Color(0xFFF3F4F6),
-                onSelected: (val) {
-                  setState(() => _selectedFilterIndex = index);
-                },
+                onSelected: (_) => setState(() => _selectedFilterIndex = index),
               ),
             );
           }),
@@ -270,8 +207,81 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
     );
   }
 
-  // ── Breed Card Widget ────────────────────────────────────
-  Widget _buildBreedCard(DairyBreed breed) {
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: _primaryGreen),
+            SizedBox(height: 16),
+            Text('Loading breeds...', style: TextStyle(color: Color(0xFF6B7280))),
+          ],
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.wifi_off, size: 64, color: Color(0xFF9CA3AF)),
+              const SizedBox(height: 16),
+              const Text(
+                'Could not load breeds',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF374151)),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Check your connection and try again.',
+                style: const TextStyle(color: Color(0xFF6B7280)),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _loadBreeds,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+                style: ElevatedButton.styleFrom(backgroundColor: _primaryGreen, foregroundColor: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final items = _filteredBreeds;
+
+    if (items.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 64, color: Color(0xFF9CA3AF)),
+            SizedBox(height: 16),
+            Text('No breeds found', style: TextStyle(fontSize: 16, color: Color(0xFF6B7280))),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadBreeds,
+      color: _primaryGreen,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 16),
+        itemBuilder: (context, i) => _buildBreedCard(items[i]),
+      ),
+    );
+  }
+
+  Widget _buildBreedCard(Breed breed) {
+    final badge = breed.animalTypeName ?? 'Dairy Breed';
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -288,22 +298,17 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Image Header with Badge ──
+          // ── Image / Placeholder ──
           Stack(
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.asset(
-                  breed.imagePath,
+                child: Container(
                   height: 180,
                   width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 180,
-                    color: _primaryGreen,
-                    child: const Center(
-                      child: Icon(Icons.pets, size: 50, color: Colors.white54),
-                    ),
+                  color: _primaryGreen.withValues(alpha: 0.08),
+                  child: const Center(
+                    child: CowHeadIcon(size: 70, color: Color(0x440C3823)),
                   ),
                 ),
               ),
@@ -317,15 +322,24 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    breed.badge,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    badge,
+                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
+              if (!(breed.status))
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade400,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text('Inactive', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+                ),
             ],
           ),
 
@@ -337,41 +351,20 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
               children: [
                 Text(
                   breed.name,
-                  style: const TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF111827),
-                  ),
+                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
                 ),
-                const SizedBox(height: 6),
-
-                Text(
-                  breed.description,
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    color: Color(0xFF4B5563),
-                    height: 1.4,
+                if (breed.description != null && breed.description!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    breed.description!,
+                    style: const TextStyle(fontSize: 12.5, color: Color(0xFF4B5563), height: 1.4),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
+                ],
                 const SizedBox(height: 12),
 
-                Row(
-                  children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: _primaryGreen),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Origin: ${breed.origin}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF374151),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Metrics Grid
+                // Animal type info
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -380,24 +373,26 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
                   ),
                   child: Row(
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Avg. Yield', style: TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
-                            const SizedBox(height: 2),
-                            Text(breed.avgYield, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: _primaryGreen)),
-                          ],
-                        ),
+                      const Icon(Icons.category_outlined, size: 16, color: _primaryGreen),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Animal Type: ${breed.animalTypeName ?? "—"}',
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
                       ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Fat Content', style: TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
-                            const SizedBox(height: 2),
-                            Text(breed.fatContent, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFFD97706))),
-                          ],
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: breed.status ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          breed.status ? 'Active' : 'Inactive',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: breed.status ? const Color(0xFF166534) : const Color(0xFF991B1B),
+                          ),
                         ),
                       ),
                     ],

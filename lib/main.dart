@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/animal_listing_screen.dart';
@@ -7,6 +7,8 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/admin_panel_screen.dart';
+import 'screens/breed_catalog_screen.dart';
+import 'screens/animal_gallery_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -24,14 +26,16 @@ class DairyFarmApp extends StatelessWidget {
       theme: AppTheme.theme,
       initialRoute: '/',
       routes: {
-        '/':        (_) => const SplashScreen(),
-        '/login':   (_) => const LoginScreen(),
+        '/':         (_) => const SplashScreen(),
+        '/login':    (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
-        '/home':    (_) => const HomeScreen(),
-        '/animals': (_) => const AnimalListingScreen(),
-        '/profile': (_) => const ProfileScreen(),
-        '/about':   (_) => const AboutScreen(),
-        '/admin':   (_) => const AdminPanelScreen(),
+        '/home':     (_) => const HomeScreen(),
+        '/animals':  (_) => const AnimalListingScreen(),
+        '/breeds':   (_) => const BreedCatalogScreen(),
+        '/gallery':  (_) => const AnimalGalleryScreen(),
+        '/profile':  (_) => const ProfileScreen(),
+        '/about':    (_) => const AboutScreen(),
+        '/admin':    (_) => const AdminPanelScreen(),
       },
     );
   }

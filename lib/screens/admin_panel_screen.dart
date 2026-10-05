@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../utils/user_session.dart';
+import '../widgets/admin_drawer.dart';
+import '../widgets/cow_head_icon.dart';
 
-// ──────────────────────────────────────────────────────────────
-// AdminPanelScreen — Ultra-Premium Executive Control Center
-// ──────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// AdminPanelScreen â€” Ultra-Premium Executive Control Center
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class AdminPanelScreen extends StatefulWidget {
-  const AdminPanelScreen({super.key});
+  final int initialTabIndex;
+
+  const AdminPanelScreen({
+    super.key,
+    this.initialTabIndex = 0,
+  });
 
   @override
   State<AdminPanelScreen> createState() => _AdminPanelScreenState();
@@ -15,7 +23,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
   late TabController _tabController;
   int _selectedTabIndex = 0;
 
-  // ── Design Tokens ─────────────────────────────────────────────
+  // â”€â”€ Design Tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static const Color _primaryGreen = Color(0xFF0C3823);
   static const Color _accentGreen = Color(0xFF22C55E);
   static const Color _lightBg = Color(0xFFEFF6F1);
@@ -23,7 +31,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
   static const Color _textDark = Color(0xFF1F2937);
   static const Color _textMuted = Color(0xFF6B7280);
 
-  // ── State Data (In-Memory Admin Management Database) ──────────
+  // â”€â”€ State Data (In-Memory Admin Management Database) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final List<Map<String, dynamic>> _cattleList = [
     {
       'id': 'COW-101',
@@ -187,6 +195,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     },
   ];
 
+  bool _apiLoading = false;
+
+  // ── Farms state (Tab 6) ────────────────────────────────────────────────────
+  List<Map<String, dynamic>> _farmsList = [];
+  bool _farmsLoading = false;
+
   final List<Map<String, dynamic>> _auditLogs = [
     {
       'time': 'Just now',
@@ -215,7 +229,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     {
       'time': '5 hours ago',
       'user': 'Admin (Rahul)',
-      'action': 'Adjusted retail price for A2 Gir Cow Milk to ₹90/L',
+      'action': 'Adjusted retail price for A2 Gir Cow Milk to â‚¹90/L',
       'type': 'price'
     },
   ];
@@ -223,12 +237,88 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _selectedTabIndex = widget.initialTabIndex;
+    _tabController = TabController(
+      length: 7,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    );
     _tabController.addListener(() {
       setState(() {
         _selectedTabIndex = _tabController.index;
       });
     });
+    _loadFromApi();
+    _loadFarms();
+  }
+
+  Future<void> _loadFarms() async {
+    setState(() => _farmsLoading = true);
+    try {
+      final farms = await apiService.getFarms();
+      if (mounted) {
+        setState(() {
+          _farmsList = farms
+              .map((f) => {
+                    'id': f.id,
+                    'name': f.name,
+                    'owner_name': f.ownerName,
+                    'phone': f.phone ?? '',
+                    'email': f.email ?? '',
+                    'city': f.city ?? '',
+                    'state': f.state ?? '',
+                    'address': f.address ?? '',
+                    'pincode': f.pincode ?? '',
+                    'description': f.description ?? '',
+                    'status': f.status,
+                  })
+              .toList();
+        });
+      }
+    } catch (_) {
+      // Retain empty list if API fails
+    } finally {
+      if (mounted) setState(() => _farmsLoading = false);
+    }
+  }
+
+  Future<void> _loadFromApi() async {
+    setState(() => _apiLoading = true);
+    try {
+      final animals = await apiService.getAnimals();
+      if (animals.isNotEmpty) {
+        setState(() {
+          _cattleList.clear();
+          for (final a in animals) {
+            _cattleList.add({
+              'id': a.tagNumber,
+              'name': a.displayName,
+              'breed': a.breedDisplay,
+              'age': _calcAge(a.dateOfBirth),
+              'milkYield': '15.0 L/day',
+              'status': a.status.toLowerCase() == 'active' ? 'Milking' : 'Dry',
+              'health': 'Healthy',
+              'photo': 'assets/images/gir_cow.png',
+            });
+          }
+        });
+      }
+    } catch (_) {
+      // Retain fallback mock list if API fails
+    } finally {
+      if (mounted) setState(() => _apiLoading = false);
+    }
+  }
+
+  String _calcAge(String? dob) {
+    if (dob == null) return '3 Yrs';
+    try {
+      final birth = DateTime.parse(dob);
+      final years = (DateTime.now().difference(birth).inDays / 365).floor();
+      return years > 0 ? '$years Yrs' : '<1 Yr';
+    } catch (_) {
+      return '3 Yrs';
+    }
   }
 
   @override
@@ -241,6 +331,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _lightBg,
+      drawer: AdminDrawer(
+        currentTabIndex: _selectedTabIndex,
+        onSelectTab: (index) {
+          _tabController.animateTo(index);
+        },
+      ),
       appBar: AppBar(
         backgroundColor: _primaryGreen,
         elevation: 0,
@@ -248,12 +344,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: _accentGreen.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: _accentGreen, width: 1.5),
               ),
-              child: const Icon(Icons.admin_panel_settings, color: _accentGreen, size: 20),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/krishna_logo.png',
+                  height: 24,
+                  width: 24,
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
             const SizedBox(width: 10),
             const Column(
@@ -301,23 +405,37 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
           tabs: const [
             Tab(text: 'Overview', icon: Icon(Icons.dashboard_outlined, size: 17)),
-            Tab(text: 'Herd Cattle', icon: Icon(Icons.pets_outlined, size: 17)),
+            Tab(text: 'Herd Cattle', icon: CowHeadIcon(size: 17, color: Colors.white)),
             Tab(text: 'Milk Production', icon: Icon(Icons.water_drop_outlined, size: 17)),
             Tab(text: 'Feed Stock', icon: Icon(Icons.grass_outlined, size: 17)),
             Tab(text: 'Prices & Products', icon: Icon(Icons.sell_outlined, size: 17)),
             Tab(text: 'Staff & Audit', icon: Icon(Icons.people_outline, size: 17)),
+            Tab(text: 'Farms', icon: Icon(Icons.store_outlined, size: 17)),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildOverviewTab(),
-          _buildHerdTab(),
-          _buildMilkTab(),
-          _buildFeedTab(),
-          _buildPricingTab(),
-          _buildStaffAndAuditTab(),
+          if (_apiLoading)
+            const LinearProgressIndicator(
+              minHeight: 2,
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation<Color>(_accentGreen),
+            ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildOverviewTab(),
+                _buildHerdTab(),
+                _buildMilkTab(),
+                _buildFeedTab(),
+                _buildPricingTab(),
+                _buildStaffAndAuditTab(),
+                _buildFarmsTab(),
+              ],
+            ),
+          ),
         ],
       ),
       floatingActionButton: _buildContextualFAB(),
@@ -361,21 +479,28 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
           icon: const Icon(Icons.person_add, color: Colors.white),
           label: const Text('Add Staff Member', style: TextStyle(color: Colors.white)),
         );
+      case 6:
+        return FloatingActionButton.extended(
+          backgroundColor: _primaryGreen,
+          onPressed: () => _showFarmFormDialog(),
+          icon: const Icon(Icons.add_business, color: Colors.white),
+          label: const Text('Add Farm', style: TextStyle(color: Colors.white)),
+        );
       default:
         return null;
     }
   }
 
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB 1: OVERVIEW & EXECUTIVE DASHBOARD
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildOverviewTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Admin Hero Banner ──
+          // â”€â”€ Admin Hero Banner â”€â”€
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(18),
@@ -399,7 +524,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: _accentGreen.withValues(alpha: 0.2),
-                  child: const Text('👑', style: TextStyle(fontSize: 26)),
+                  child: const Text('ðŸ‘‘', style: TextStyle(fontSize: 26)),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -412,7 +537,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Full Control Active • ${globalUserSession.roleName}',
+                        'Full Control Active â€¢ ${globalUserSession.roleName}',
                         style: const TextStyle(color: Color(0xFF86EFAC), fontSize: 12),
                       ),
                     ],
@@ -438,7 +563,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
 
           const SizedBox(height: 20),
 
-          // ── Executive KPI Grid ──
+          // â”€â”€ Executive KPI Grid â”€â”€
           const Text(
             'FARM KEY PERFORMANCE METRICS',
             style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: _textMuted, letterSpacing: 1.1),
@@ -455,22 +580,23 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
               _buildKPICard(
                 title: 'Total Herd Count',
                 value: '${_cattleList.length} Animals',
-                subtitle: '${_cattleList.where((e) => e['status'] == 'Milking').length} Milking • ${_cattleList.where((e) => e['status'] == 'Dry').length} Dry',
+                subtitle: '${_cattleList.where((e) => e['status'] == 'Milking').length} Milking â€¢ ${_cattleList.where((e) => e['status'] == 'Dry').length} Dry',
                 icon: Icons.pets,
+                customIconWidget: const CowHeadIcon(size: 16, color: Color(0xFF16A34A)),
                 iconBg: const Color(0xFFDCFCE7),
                 iconColor: const Color(0xFF16A34A),
               ),
               _buildKPICard(
                 title: 'Daily Milk Production',
                 value: '312.0 Litres',
-                subtitle: '↑ 4.2% yield increase',
+                subtitle: 'â†‘ 4.2% yield increase',
                 icon: Icons.water_drop,
                 iconBg: const Color(0xFFE0F2FE),
                 iconColor: const Color(0xFF0284C7),
               ),
               _buildKPICard(
                 title: 'Monthly Revenue',
-                value: '₹3,45,800',
+                value: 'â‚¹3,45,800',
                 subtitle: 'Milk & Dairy Products',
                 icon: Icons.currency_rupee,
                 iconBg: const Color(0xFFFEF3C7),
@@ -489,7 +615,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
 
           const SizedBox(height: 24),
 
-          // ── Quick Action Bar ──
+          // â”€â”€ Quick Action Bar â”€â”€
           const Text(
             'QUICK ADMINISTRATIVE CONTROLS',
             style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: _textMuted, letterSpacing: 1.1),
@@ -534,7 +660,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
 
           const SizedBox(height: 24),
 
-          // ── Live Audit Log Snapshot ──
+          // â”€â”€ Live Audit Log Snapshot â”€â”€
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -568,7 +694,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                     child: Icon(_getLogIcon(log['type']), size: 16, color: _primaryGreen),
                   ),
                   title: Text(log['action'], style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _textDark)),
-                  subtitle: Text('By ${log['user']} • ${log['time']}', style: const TextStyle(fontSize: 11, color: _textMuted)),
+                  subtitle: Text('By ${log['user']} â€¢ ${log['time']}', style: const TextStyle(fontSize: 11, color: _textMuted)),
                 );
               },
             ),
@@ -585,6 +711,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
+    Widget? customIconWidget,
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -606,7 +733,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8)),
-                child: Icon(icon, size: 16, color: iconColor),
+                child: customIconWidget ?? Icon(icon, size: 16, color: iconColor),
               ),
             ],
           ),
@@ -650,9 +777,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     );
   }
 
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB 2: HERD CATTLE CONTROL
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildHerdTab() {
     return Column(
       children: [
@@ -697,7 +824,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                           width: 60,
                           height: 60,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(width: 60, height: 60, color: const Color(0xFFD1FAE5), child: const Icon(Icons.pets, color: _primaryGreen)),
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 60,
+                            height: 60,
+                            color: const Color(0xFFD1FAE5),
+                            child: const Center(child: CowHeadIcon(size: 26, color: _primaryGreen)),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -717,7 +849,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text('${item['breed']} • ${item['age']} • ${item['milkYield']}', style: const TextStyle(fontSize: 12, color: _textMuted)),
+                            Text('${item['breed']} â€¢ ${item['age']} â€¢ ${item['milkYield']}', style: const TextStyle(fontSize: 12, color: _textMuted)),
                             const SizedBox(height: 6),
                             Row(
                               children: [
@@ -770,9 +902,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     );
   }
 
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB 3: MILK PRODUCTION MANAGER
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildMilkTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -794,7 +926,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                   children: [
                     Text('Today Total Collection', style: TextStyle(fontSize: 12, color: _textMuted, fontWeight: FontWeight.w600)),
                     Text('312.0 Litres', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0284C7))),
-                    Text('38 Cows Milked • Avg Fat 4.5%', style: TextStyle(fontSize: 11, color: Color(0xFF0369A1))),
+                    Text('38 Cows Milked â€¢ Avg Fat 4.5%', style: TextStyle(fontSize: 11, color: Color(0xFF0369A1))),
                   ],
                 ),
               ),
@@ -826,7 +958,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                   child: const Icon(Icons.water_drop, color: Color(0xFF0284C7), size: 20),
                 ),
                 title: Text('${log['session']} (${log['time']})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                subtitle: Text('${log['cows']} Animals • Fat Rate ${log['fat']}', style: const TextStyle(fontSize: 12, color: _textMuted)),
+                subtitle: Text('${log['cows']} Animals â€¢ Fat Rate ${log['fat']}', style: const TextStyle(fontSize: 12, color: _textMuted)),
                 trailing: Text('${log['qty']} L', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: _primaryGreen)),
               ),
             );
@@ -836,9 +968,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     );
   }
 
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB 4: FEED & STOCK MANAGEMENT
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildFeedTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -903,9 +1035,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     );
   }
 
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB 5: PRICING & PRODUCTS MANAGER
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPricingTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -966,7 +1098,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('₹${prod['price']} / ${prod['unit']}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: _primaryGreen)),
+                          Text('â‚¹${prod['price']} / ${prod['unit']}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: _primaryGreen)),
                           const SizedBox(height: 4),
                           InkWell(
                             onTap: () => _showEditPriceDialog(prod),
@@ -985,9 +1117,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     );
   }
 
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB 6: STAFF & AUDIT STREAM
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildStaffAndAuditTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -1019,7 +1151,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(staff['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                          Text('${staff['role']} • ${staff['shift']}', style: const TextStyle(fontSize: 11.5, color: _primaryGreen, fontWeight: FontWeight.w600)),
+                          Text('${staff['role']} â€¢ ${staff['shift']}', style: const TextStyle(fontSize: 11.5, color: _primaryGreen, fontWeight: FontWeight.w600)),
                           Text(staff['phone'], style: const TextStyle(fontSize: 11, color: _textMuted)),
                         ],
                       ),
@@ -1058,7 +1190,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                   child: Icon(_getLogIcon(log['type']), color: _primaryGreen, size: 18),
                 ),
                 title: Text(log['action'], style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold)),
-                subtitle: Text('User: ${log['user']} • ${log['time']}', style: const TextStyle(fontSize: 11, color: _textMuted)),
+                subtitle: Text('User: ${log['user']} â€¢ ${log['time']}', style: const TextStyle(fontSize: 11, color: _textMuted)),
               ),
             );
           },
@@ -1083,9 +1215,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     }
   }
 
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // INTERACTIVE MANAGEMENT DIALOGS
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _showAddCattleDialog() {
     final nameCtrl = TextEditingController();
     final breedCtrl = TextEditingController(text: 'Gir Cow');
@@ -1094,7 +1226,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(children: [Icon(Icons.pets, color: _primaryGreen), SizedBox(width: 8), Text('Register New Livestock')]),
+        title: const Row(children: [CowHeadIcon(size: 20, color: _primaryGreen), SizedBox(width: 8), Text('Register New Livestock')]),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1261,7 +1393,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
           children: [
             TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Product Name')),
             const SizedBox(height: 8),
-            TextField(controller: priceCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Price (₹)')),
+            TextField(controller: priceCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Price (â‚¹)')),
             const SizedBox(height: 8),
             TextField(controller: unitCtrl, decoration: const InputDecoration(labelText: 'Unit (Litre / Kg / Packet)')),
           ],
@@ -1282,7 +1414,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                     'status': 'In Stock',
                     'icon': Icons.inventory_2
                   });
-                  _auditLogs.insert(0, {'time': 'Just now', 'user': 'Admin', 'action': 'Added new product ${nameCtrl.text} at ₹$p/${unitCtrl.text}', 'type': 'price'});
+                  _auditLogs.insert(0, {'time': 'Just now', 'user': 'Admin', 'action': 'Added new product ${nameCtrl.text} at â‚¹$p/${unitCtrl.text}', 'type': 'price'});
                 });
                 Navigator.pop(ctx);
               }
@@ -1304,7 +1436,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
         content: TextField(
           controller: priceCtrl,
           keyboardType: TextInputType.number,
-          decoration: InputDecoration(labelText: 'New Price per ${prod['unit']} (₹)', prefixText: '₹ '),
+          decoration: InputDecoration(labelText: 'New Price per ${prod['unit']} (â‚¹)', prefixText: 'â‚¹ '),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
@@ -1315,7 +1447,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
               if (newPrice != null) {
                 setState(() {
                   prod['price'] = newPrice;
-                  _auditLogs.insert(0, {'time': 'Just now', 'user': 'Admin', 'action': 'Changed rate of ${prod['name']} to ₹$newPrice/${prod['unit']}', 'type': 'price'});
+                  _auditLogs.insert(0, {'time': 'Just now', 'user': 'Admin', 'action': 'Changed rate of ${prod['name']} to â‚¹$newPrice/${prod['unit']}', 'type': 'price'});
                 });
                 Navigator.pop(ctx);
               }
@@ -1371,6 +1503,719 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     );
   }
 
+  // ──────────────────────────────────────────────────────────────────────────
+  // TAB 7: FARMS MANAGEMENT
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildFarmsTab() {
+    return Column(
+      children: [
+        if (_farmsLoading)
+          const LinearProgressIndicator(
+            minHeight: 2,
+            backgroundColor: Colors.transparent,
+            valueColor: AlwaysStoppedAnimation<Color>(_accentGreen),
+          ),
+        Expanded(
+          child: _farmsList.isEmpty && !_farmsLoading
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.store_outlined,
+                          size: 60, color: _textMuted.withValues(alpha: 0.4)),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No farms found',
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: _textMuted,
+                            fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Tap the + button to add your first farm',
+                        style:
+                            TextStyle(fontSize: 13, color: _textMuted.withValues(alpha: 0.7)),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  color: _primaryGreen,
+                  onRefresh: _loadFarms,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                    itemCount: _farmsList.length,
+                    itemBuilder: (context, index) {
+                      final farm = _farmsList[index];
+                      return _buildFarmCard(farm, index);
+                    },
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFarmCard(Map<String, dynamic> farm, int index) {
+    final bool isActive = farm['status'] == true || farm['status'] == 1;
+    final String city = farm['city']?.toString() ?? '';
+    final String state = farm['state']?.toString() ?? '';
+    final String location =
+        [city, state].where((s) => s.isNotEmpty).join(', ');
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header row ──
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? const Color(0xFFDCFCE7)
+                        : const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.store_outlined,
+                    size: 22,
+                    color: isActive
+                        ? const Color(0xFF16A34A)
+                        : _textMuted,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        farm['name']?.toString() ?? '',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: _textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Owner: ${farm['owner_name'] ?? ''}',
+                        style: const TextStyle(
+                            fontSize: 12.5, color: _textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+                // Status badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? const Color(0xFFDCFCE7)
+                        : const Color(0xFFFEE2E2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    isActive ? 'Active' : 'Inactive',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isActive
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFFDC2626),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // ── Details ──
+            if (location.isNotEmpty || (farm['phone']?.toString() ?? '').isNotEmpty) ...
+              [
+                const SizedBox(height: 10),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 6,
+                  children: [
+                    if (location.isNotEmpty)
+                      _farmInfoChip(
+                          Icons.location_on_outlined, location),
+                    if ((farm['phone']?.toString() ?? '').isNotEmpty)
+                      _farmInfoChip(
+                          Icons.phone_outlined, farm['phone'].toString()),
+                    if ((farm['email']?.toString() ?? '').isNotEmpty)
+                      _farmInfoChip(
+                          Icons.email_outlined, farm['email'].toString()),
+                  ],
+                ),
+              ],
+            if ((farm['description']?.toString() ?? '').isNotEmpty) ...
+              [
+                const SizedBox(height: 8),
+                Text(
+                  farm['description'].toString(),
+                  style: const TextStyle(
+                      fontSize: 12.5, color: _textMuted, height: 1.4),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            const SizedBox(height: 12),
+            // ── Action buttons ──
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showFarmFormDialog(
+                        farmData: farm, index: index),
+                    icon: const Icon(Icons.edit_outlined, size: 15),
+                    label: const Text('Edit',
+                        style: TextStyle(fontSize: 13)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _primaryGreen,
+                      side: const BorderSide(color: _primaryGreen),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () =>
+                        _confirmDeleteFarm(farm, index),
+                    icon: const Icon(Icons.delete_outline, size: 15),
+                    label: const Text('Delete',
+                        style: TextStyle(fontSize: 13)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFDC2626),
+                      side: const BorderSide(
+                          color: Color(0xFFDC2626)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _farmInfoChip(IconData icon, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: _textMuted),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: _textMuted),
+        ),
+      ],
+    );
+  }
+
+  // ── Add / Edit Farm Dialog ─────────────────────────────────────────────────
+  void _showFarmFormDialog({
+    Map<String, dynamic>? farmData,
+    int? index,
+  }) {
+    final isEdit = farmData != null;
+    final nameCtrl =
+        TextEditingController(text: farmData?['name']?.toString() ?? '');
+    final ownerCtrl =
+        TextEditingController(text: farmData?['owner_name']?.toString() ?? '');
+    final phoneCtrl =
+        TextEditingController(text: farmData?['phone']?.toString() ?? '');
+    final emailCtrl =
+        TextEditingController(text: farmData?['email']?.toString() ?? '');
+    final cityCtrl =
+        TextEditingController(text: farmData?['city']?.toString() ?? '');
+    final stateCtrl =
+        TextEditingController(text: farmData?['state']?.toString() ?? '');
+    final addressCtrl =
+        TextEditingController(text: farmData?['address']?.toString() ?? '');
+    final pincodeCtrl =
+        TextEditingController(text: farmData?['pincode']?.toString() ?? '');
+    final descCtrl =
+        TextEditingController(text: farmData?['description']?.toString() ?? '');
+    bool isActive =
+        farmData?['status'] == true || farmData?['status'] == 1;
+    bool saving = false;
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          maxChildSize: 0.95,
+          minChildSize: 0.5,
+          builder: (_, scrollCtrl) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius:
+                  BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              children: [
+                // ── Handle ──
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 4),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // ── Title ──
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDCFCE7),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.store_outlined,
+                            color: _primaryGreen, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        isEdit ? 'Edit Farm' : 'Add New Farm',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: _textDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                // ── Form ──
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: scrollCtrl,
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      16,
+                      20,
+                      MediaQuery.of(ctx).viewInsets.bottom + 20,
+                    ),
+                    child: Form(
+                      key: formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _farmField(
+                            'Farm Name *',
+                            nameCtrl,
+                            Icons.store_outlined,
+                            'e.g. Krishna Dairy Farm',
+                            validator: (v) => v == null || v.trim().isEmpty
+                                ? 'Farm name is required'
+                                : null,
+                          ),
+                          _farmField(
+                            'Owner Name *',
+                            ownerCtrl,
+                            Icons.person_outline,
+                            'e.g. Rahul Sharma',
+                            validator: (v) => v == null || v.trim().isEmpty
+                                ? 'Owner name is required'
+                                : null,
+                          ),
+                          _farmField(
+                            'Phone',
+                            phoneCtrl,
+                            Icons.phone_outlined,
+                            '+91 98765 43210',
+                            keyboardType: TextInputType.phone,
+                          ),
+                          _farmField(
+                            'Email',
+                            emailCtrl,
+                            Icons.email_outlined,
+                            'farm@example.com',
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          _farmField(
+                            'Address',
+                            addressCtrl,
+                            Icons.home_outlined,
+                            'Street address',
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                  child: _farmField(
+                                'City',
+                                cityCtrl,
+                                Icons.location_city_outlined,
+                                'Pune',
+                              )),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                  child: _farmField(
+                                'State',
+                                stateCtrl,
+                                Icons.map_outlined,
+                                'Maharashtra',
+                              )),
+                            ],
+                          ),
+                          _farmField(
+                            'Pincode',
+                            pincodeCtrl,
+                            Icons.pin_outlined,
+                            '411001',
+                            keyboardType: TextInputType.number,
+                          ),
+                          _farmField(
+                            'Description',
+                            descCtrl,
+                            Icons.notes_outlined,
+                            'Brief about this farm...',
+                            maxLines: 3,
+                          ),
+                          // ── Status toggle ──
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Farm Status',
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: _textDark,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    isActive ? 'Active' : 'Inactive',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: isActive
+                                          ? const Color(0xFF16A34A)
+                                          : _textMuted,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Switch(
+                                    value: isActive,
+                                    onChanged: (v) =>
+                                        setSheet(() => isActive = v),
+                                    activeColor: _primaryGreen,
+                                    activeTrackColor:
+                                        const Color(0xFF86EFAC),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // ── Save button ──
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton.icon(
+                              onPressed: saving
+                                  ? null
+                                  : () async {
+                                      if (!formKey.currentState!
+                                          .validate()) return;
+                                      setSheet(() => saving = true);
+                                      final payload = {
+                                        'name': nameCtrl.text.trim(),
+                                        'owner_name':
+                                            ownerCtrl.text.trim(),
+                                        'phone': phoneCtrl.text.trim(),
+                                        'email': emailCtrl.text.trim(),
+                                        'address':
+                                            addressCtrl.text.trim(),
+                                        'city': cityCtrl.text.trim(),
+                                        'state': stateCtrl.text.trim(),
+                                        'pincode':
+                                            pincodeCtrl.text.trim(),
+                                        'description':
+                                            descCtrl.text.trim(),
+                                        'status': isActive ? 1 : 0,
+                                      };
+                                      try {
+                                        if (isEdit) {
+                                          final updated =
+                                              await apiService.updateFarm(
+                                            farmData!['id'] as int,
+                                            payload,
+                                          );
+                                          if (mounted && index != null) {
+                                            setState(() {
+                                              _farmsList[index] = {
+                                                'id': updated.id,
+                                                'name': updated.name,
+                                                'owner_name':
+                                                    updated.ownerName,
+                                                'phone': updated.phone ?? '',
+                                                'email': updated.email ?? '',
+                                                'city': updated.city ?? '',
+                                                'state': updated.state ?? '',
+                                                'address':
+                                                    updated.address ?? '',
+                                                'pincode':
+                                                    updated.pincode ?? '',
+                                                'description':
+                                                    updated.description ?? '',
+                                                'status': updated.status,
+                                              };
+                                            });
+                                          }
+                                        } else {
+                                          final created =
+                                              await apiService.createFarm(
+                                                  payload);
+                                          if (mounted) {
+                                            setState(() {
+                                              _farmsList.add({
+                                                'id': created.id,
+                                                'name': created.name,
+                                                'owner_name':
+                                                    created.ownerName,
+                                                'phone': created.phone ?? '',
+                                                'email': created.email ?? '',
+                                                'city': created.city ?? '',
+                                                'state': created.state ?? '',
+                                                'address':
+                                                    created.address ?? '',
+                                                'pincode':
+                                                    created.pincode ?? '',
+                                                'description':
+                                                    created.description ?? '',
+                                                'status': created.status,
+                                              });
+                                            });
+                                          }
+                                        }
+                                        if (ctx.mounted) Navigator.pop(ctx);
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                            backgroundColor: _primaryGreen,
+                                            content: Text(isEdit
+                                                ? '✅ Farm updated successfully!'
+                                                : '✅ Farm added successfully!'),
+                                          ));
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                            backgroundColor: Colors.red,
+                                            content: Text(
+                                              '❌ ${e.toString().replaceAll('Exception:', '').trim()}',
+                                            ),
+                                          ));
+                                        }
+                                      } finally {
+                                        if (ctx.mounted) {
+                                          setSheet(() => saving = false);
+                                        }
+                                      }
+                                    },
+                              icon: saving
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.save_outlined,
+                                      color: Colors.white, size: 18),
+                              label: Text(
+                                saving
+                                    ? 'Saving...'
+                                    : isEdit
+                                        ? 'Update Farm'
+                                        : 'Add Farm',
+                                style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _primaryGreen,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Farm form field helper ─────────────────────────────────────────────────
+  Widget _farmField(
+    String label,
+    TextEditingController ctrl,
+    IconData icon,
+    String hint, {
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: _textDark,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: ctrl,
+            keyboardType: keyboardType,
+            maxLines: maxLines,
+            validator: validator,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle:
+                  const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+              prefixIcon: Icon(icon, size: 18, color: _textMuted),
+              filled: true,
+              fillColor: const Color(0xFFF9FAFB),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide:
+                    const BorderSide(color: _primaryGreen, width: 1.5),
+              ),
+              errorStyle: const TextStyle(fontSize: 11),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Delete confirmation ────────────────────────────────────────────────────
+  void _confirmDeleteFarm(Map<String, dynamic> farm, int index) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete Farm',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(
+            'Are you sure you want to delete "${farm['name']}"? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel',
+                style: TextStyle(color: _textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await apiService.deleteFarm(farm['id'] as int);
+                if (mounted) {
+                  setState(() => _farmsList.removeAt(index));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: Color(0xFFDC2626),
+                      content: Text('Farm deleted successfully.'),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Colors.red,
+                      content: Text(
+                        '❌ ${e.toString().replaceAll('Exception:', '').trim()}',
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Delete',
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showBroadcastDialog() {
     final msgCtrl = TextEditingController();
     showDialog(
@@ -1419,3 +2264,4 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     );
   }
 }
+

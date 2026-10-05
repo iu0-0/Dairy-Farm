@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
+import '../utils/user_session.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -40,11 +42,25 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     // 2. Setup Automatic Timer to Navigate when Opened
-    _timer = Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+    _timer = Timer(const Duration(seconds: 3), _checkAuthAndNavigate);
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    final isLoggedIn = await apiService.isLoggedIn;
+    if (!mounted) return;
+
+    if (isLoggedIn) {
+      final role = await apiService.savedUserRole;
+      if (role == 'admin' || role == 'main_admin') {
+        globalUserSession.setRole(UserRole.admin);
+        Navigator.pushReplacementNamed(context, '/admin');
+      } else {
+        globalUserSession.setRole(UserRole.user);
+        Navigator.pushReplacementNamed(context, '/home');
       }
-    });
+    } else {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
   }
 
   @override
@@ -74,22 +90,36 @@ class _SplashScreenState extends State<SplashScreen>
                   child: FadeTransition(
                     opacity: _fadeAnimation,
                     child: Container(
-                      padding: const EdgeInsets.all(26),
+                      width: 140,
+                      height: 140,
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1B4332).withValues(alpha: 0.12),
-                            blurRadius: 32,
+                            color: const Color(0xFF0C3823).withValues(alpha: 0.18),
+                            blurRadius: 36,
                             spreadRadius: 6,
                             offset: const Offset(0, 10),
                           ),
                         ],
                       ),
-                      child: const FlutterLogo(
-                        size: 120,
-                        style: FlutterLogoStyle.markOnly,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/krishna_logo.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Center(
+                            child: Text(
+                              'K',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0C3823),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),

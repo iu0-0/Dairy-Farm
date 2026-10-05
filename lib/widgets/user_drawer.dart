@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/smooth_page_route.dart';
+import '../utils/user_session.dart';
 import '../screens/home_screen.dart';
 import '../screens/products_screen.dart';
 import '../screens/animal_listing_screen.dart';
@@ -7,6 +8,7 @@ import '../screens/animal_gallery_screen.dart';
 import '../screens/breed_catalog_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/about_screen.dart';
+import 'cow_head_icon.dart';
 
 // ──────────────────────────────────────────────────────────────
 // UserDrawer — Dedicated Customer & Visitor Drawer Navigation
@@ -27,7 +29,11 @@ class UserDrawer extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
             decoration: const BoxDecoration(
-              color: Color(0xFF0C3823),
+              gradient: LinearGradient(
+                colors: [Color(0xFF0C3823), Color(0xFF166534)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,7 +45,7 @@ class UserDrawer extends StatelessWidget {
                       backgroundColor: const Color(0xFF86EFAC),
                       child: ClipOval(
                         child: Image.asset(
-                          'assets/images/dairy_logo.png',
+                          'assets/images/krishna_logo.png',
                           height: 52,
                           width: 52,
                           fit: BoxFit.contain,
@@ -69,7 +75,7 @@ class UserDrawer extends StatelessWidget {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'customer@krishnadairy.com',
+                            'user@krishnadairy.com',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 11.5,
@@ -100,7 +106,7 @@ class UserDrawer extends StatelessWidget {
             ),
           ),
 
-          // ── Customer Navigation Menu Items ──
+          // ── Customer-Only Navigation Menu Items ──
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -142,6 +148,7 @@ class UserDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: Icons.pets_outlined,
+                  customLeading: const CowHeadIcon(size: 20, color: Color(0xFF0C3823)),
                   title: 'Our Livestock',
                   subtitle: 'Explore active cattle & herd info',
                   onTap: () {
@@ -229,10 +236,13 @@ class UserDrawer extends StatelessWidget {
             ),
           ),
 
-          // ── Footer ──
+          // ── Footer — Logout Only ──
           Container(
             padding: const EdgeInsets.all(16),
-            color: const Color(0xFFF9FAFB),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF9FAFB),
+              border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+            ),
             child: Row(
               children: [
                 const Icon(Icons.verified_user_outlined, size: 16, color: Color(0xFF16A34A)),
@@ -248,12 +258,17 @@ class UserDrawer extends StatelessWidget {
                 ),
                 InkWell(
                   onTap: () {
+                    globalUserSession.setRole(UserRole.user);
                     Navigator.pop(context);
                     Navigator.pushReplacementNamed(context, '/login');
                   },
                   child: const Text(
                     'Logout',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.red),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
                   ),
                 ),
               ],
@@ -270,6 +285,7 @@ class UserDrawer extends StatelessWidget {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    Widget? customLeading,
   }) {
     return ListTile(
       leading: Container(
@@ -278,7 +294,7 @@ class UserDrawer extends StatelessWidget {
           color: const Color(0xFFD1FAE5),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, size: 20, color: const Color(0xFF0C3823)),
+        child: customLeading ?? Icon(icon, size: 20, color: const Color(0xFF0C3823)),
       ),
       title: Text(
         title,

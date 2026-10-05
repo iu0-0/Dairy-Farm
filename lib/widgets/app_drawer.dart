@@ -44,7 +44,7 @@ class AppDrawer extends StatelessWidget {
                           backgroundColor: const Color(0xFF86EFAC),
                           child: ClipOval(
                             child: Image.asset(
-                              'assets/images/dairy_logo.png',
+                              'assets/images/krishna_logo.png',
                               height: 52,
                               width: 52,
                               fit: BoxFit.contain,

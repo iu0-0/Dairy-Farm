@@ -4,6 +4,7 @@ import '../utils/smooth_page_route.dart';
 import '../screens/animal_listing_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/profile_screen.dart';
+import 'cow_head_icon.dart';
 
 // ─────────────────────────────────────────────────────────────
 // Shared Bottom Navigation Bar
@@ -130,11 +131,16 @@ class _NavItem extends StatelessWidget {
                     : Colors.transparent,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 22,
-                color: isSelected ? AppTheme.primary : AppTheme.navBarUnselected,
-              ),
+              child: index == 0
+                  ? CowHeadIcon(
+                      size: 22,
+                      color: isSelected ? AppTheme.primary : AppTheme.navBarUnselected,
+                    )
+                  : Icon(
+                      icon,
+                      size: 22,
+                      color: isSelected ? AppTheme.primary : AppTheme.navBarUnselected,
+                    ),
             ),
             const SizedBox(height: 2),
             Text(

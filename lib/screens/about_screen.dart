@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/user_drawer.dart';
+import '../widgets/cow_head_icon.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -179,7 +180,7 @@ class AboutScreen extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.asset(
-                          'assets/images/dairy_logo.png',
+                          'assets/images/krishna_logo.png',
                           height: 32,
                           width: 32,
                           fit: BoxFit.contain,
@@ -253,7 +254,7 @@ class AboutScreen extends StatelessWidget {
               backgroundColor: Colors.white,
               child: ClipOval(
                 child: Image.asset(
-                  'assets/images/dairy_logo.png',
+                  'assets/images/krishna_logo.png',
                   height: 70,
                   width: 70,
                   fit: BoxFit.contain,
@@ -321,7 +322,9 @@ class AboutScreen extends StatelessWidget {
                 color: color.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: color, size: 20),
+              child: icon == Icons.pets
+                  ? CowHeadIcon(size: 20, color: color)
+                  : Icon(icon, color: color, size: 20),
             ),
             const SizedBox(height: 8),
             Text(

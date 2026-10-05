@@ -1,8 +1,29 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../widgets/user_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
-import 'animal_gallery_screen.dart';
-import 'animal_listing_screen.dart';
+import '../widgets/cow_head_icon.dart';
+
+class Animal {
+  final String name;
+  final String tagId;
+  final String breed;
+  final String age;
+  final String imagePath;
+  final String status;
+  final String todayYield;
+  final String location;
+
+  const Animal({
+    this.name = 'Bella - Holstein Elite',
+    this.tagId = 'BE-0842',
+    this.breed = 'Holstein',
+    this.age = '4.2 Yrs',
+    this.imagePath = 'assets/images/holstein_friesian.png',
+    this.status = 'Pregnant',
+    this.todayYield = '34.2 Liters',
+    this.location = 'Stable Block A | Pen 04',
+  });
+}
 
 class AnimalDetailScreen extends StatefulWidget {
   final Animal? animal;
@@ -212,7 +233,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
               errorBuilder: (_, __, ___) => Container(
                 color: const Color(0xFF2D6A4F),
                 child: const Center(
-                  child: Icon(Icons.pets, size: 60, color: Colors.white54),
+                  child: CowHeadIcon(size: 60, color: Colors.white54),
                 ),
               ),
             ),
@@ -967,13 +988,13 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
   }
 
   void _showMediaViewer(BuildContext context, GalleryMediaItem item) {
+    bool isPlaying = false;
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.92),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            bool isPlaying = false;
 
             return Dialog.fullscreen(
               backgroundColor: Colors.black,
@@ -1665,4 +1686,24 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
   }
 
   // ── Bottom Navigation Bar ─────────────────────────────────
+}
+
+class GalleryMediaItem {
+  final String id;
+  final String title;
+  final String tag;
+  final String imagePath;
+  final bool isVideo;
+  final String duration;
+  final String category;
+
+  const GalleryMediaItem({
+    required this.id,
+    required this.title,
+    required this.tag,
+    required this.imagePath,
+    this.isVideo = false,
+    this.duration = '',
+    required this.category,
+  });
 }

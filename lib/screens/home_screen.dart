@@ -1,16 +1,19 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import '../widgets/user_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/cow_head_icon.dart';
 import 'animal_listing_screen.dart';
 import 'milk_yield_screen.dart';
 import 'health_screen.dart';
 import 'feed_screen.dart';
+import '../services/api_service.dart';
 
 
-// ─────────────────────────────────────────────
-// HomeScreen — Farm Dashboard (Customer View)
-// ─────────────────────────────────────────────
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// HomeScreen â€” Farm Dashboard (Customer View)
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,7 +22,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  // ── Design tokens ─────────────────────────────
+  // â”€â”€ Design tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static const Color _primaryGreen = Color(0xFF0C3823);
   static const Color _accent = Color(0xFF22C55E);
   static const Color _bg = Color(0xFFEFF6F1);
@@ -27,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   static const Color _textGrey = Color(0xFF6B7280);
   static const Color _divider = Color(0xFFE5E7EB);
 
-  // ── Hero carousel ──────────────────────────────
+  // â”€â”€ Hero carousel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final PageController _heroController = PageController();
   int _currentHeroPage = 0;
   Timer? _heroTimer;
@@ -35,25 +38,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final List<_HeroSlide> _heroSlides = const [
     _HeroSlide(
       image: 'assets/images/farm_hero_banner.png',
-      tag: '🌿 Welcome to Your Farm',
+      tag: 'ðŸŒ¿ Welcome to Your Farm',
       title: 'Krishna Dairy Farm',
       subtitle: 'Managing 48 animals across 3 breeds',
     ),
     _HeroSlide(
       image: 'assets/images/farm_animals.png',
-      tag: '🐄 Animal Overview',
+      tag: 'ðŸ„ Animal Overview',
       title: '46 Healthy Animals',
       subtitle: '2 under veterinary observation',
     ),
     _HeroSlide(
       image: 'assets/images/milk_production.png',
-      tag: '🥛 Today\'s Production',
+      tag: 'ðŸ¥› Today\'s Production',
       title: '312 Litres Collected',
-      subtitle: '↑ 4.2% above yesterday\'s yield',
+      subtitle: 'â†‘ 4.2% above yesterday\'s yield',
     ),
   ];
 
-  // ── Breed showcase ─────────────────────────────
+  // â”€â”€ Breed showcase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final List<_BreedCard> _breeds = const [
     _BreedCard(
       name: 'Gir Cow',
@@ -89,13 +92,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     ),
   ];
 
-  // ── Animation controller ───────────────────────
+  // â”€â”€ Animation controller â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── API State ──
+  int _totalAnimals = 48;
+  int _healthyAnimals = 46;
+  String _farmName = 'Krishna Dairy';
+  double _todayMilk = 312.0;
+
   late AnimationController _pulseCtrl;
   late Animation<double> _pulseAnim;
 
   @override
   void initState() {
     super.initState();
+    _loadDashboardData();
     _heroTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (_heroController.hasClients) {
         final next = (_currentHeroPage + 1) % _heroSlides.length;
@@ -112,6 +122,43 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _pulseAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
     );
+  }
+
+  Future<void> _loadDashboardData() async {
+    try {
+      final dashboard = await apiService.getDashboard();
+      if (mounted) {
+        setState(() {
+          if (dashboard.containsKey('total_animals')) {
+            _totalAnimals = (dashboard['total_animals'] as num?)?.toInt() ?? _totalAnimals;
+          }
+          if (dashboard.containsKey('total_milk_today')) {
+            _todayMilk = (dashboard['total_milk_today'] as num?)?.toDouble() ?? _todayMilk;
+          }
+        });
+      }
+    } catch (_) {}
+
+    try {
+      final animals = await apiService.getAnimals();
+      if (mounted && animals.isNotEmpty) {
+        setState(() {
+          _totalAnimals = animals.length;
+          _healthyAnimals = animals
+              .where((a) => a.status.toLowerCase() == 'active')
+              .length;
+        });
+      }
+    } catch (_) {}
+
+    try {
+      final farms = await apiService.getFarms();
+      if (mounted && farms.isNotEmpty) {
+        setState(() {
+          _farmName = farms.first.name;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -142,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Hero Image Carousel ──
+        // â”€â”€ Hero Image Carousel â”€â”€
         _buildHeroCarousel(),
 
         Padding(
@@ -150,15 +197,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Stats Row ──
+              // â”€â”€ Stats Row â”€â”€
               _buildStatsRow(),
               const SizedBox(height: 20),
 
-              // ── Health Alert ──
+              // â”€â”€ Health Alert â”€â”€
               _buildAlertBanner(),
               const SizedBox(height: 24),
 
-              // ── Quick Actions ──
+              // â”€â”€ Quick Actions â”€â”€
               _buildSectionHeader('Quick Actions'),
               const SizedBox(height: 12),
               _buildQuickActions(),
@@ -167,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ),
 
-        // ── Breed Showcase ──
+        // â”€â”€ Breed Showcase â”€â”€
         _buildSectionHeaderPadded('Our Breeds'),
         const SizedBox(height: 12),
         _buildBreedCarousel(),
@@ -178,13 +225,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Today's Activity ──
+              // â”€â”€ Today's Activity â”€â”€
               _buildSectionHeader("Today's Activity"),
               const SizedBox(height: 12),
               _buildActivityCard(),
               const SizedBox(height: 24),
 
-              // ── Milk Summary ──
+              // â”€â”€ Milk Summary â”€â”€
               _buildSectionHeader('Milk Production'),
               const SizedBox(height: 12),
               _buildMilkSummaryCard(),
@@ -196,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Sliver App Bar ─────────────────────────────
+  // â”€â”€ Sliver App Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildSliverAppBar() {
     return SliverAppBar(
       pinned: true,
@@ -213,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.asset(
-              'assets/images/dairy_logo.png',
+              'assets/images/krishna_logo.png',
               height: 34,
               width: 34,
               fit: BoxFit.contain,
@@ -225,16 +272,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 8),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Krishna Dairy',
-                  style: TextStyle(
+              Text(_farmName,
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.w800)),
-              Text('Good Morning, Rahul 🌿',
+              const Text('Good Morning, Rahul ðŸŒ¿',
                   style:
                       TextStyle(color: Colors.white60, fontSize: 10.5)),
             ],
@@ -272,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Hero Carousel ──────────────────────────────
+  // â”€â”€ Hero Carousel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildHeroCarousel() {
     return SizedBox(
       height: 220,
@@ -382,16 +429,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Stats Row ──────────────────────────────────
+  // â”€â”€ Stats Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildStatsRow() {
     return Row(
       children: [
         Expanded(
             child: _buildStatCard(
           icon: Icons.pets,
+          customIconWidget: const CowHeadIcon(size: 20, color: Color(0xFF16A34A)),
           iconColor: const Color(0xFF16A34A),
           iconBg: const Color(0xFFDCFCE7),
-          value: '48',
+          value: _totalAnimals.toString(),
           label: 'Total Animals',
         )),
         const SizedBox(width: 12),
@@ -400,7 +448,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           icon: Icons.water_drop,
           iconColor: const Color(0xFF0284C7),
           iconBg: const Color(0xFFE0F2FE),
-          value: '312 L',
+          value: ' L',
           label: "Today's Milk",
         )),
         const SizedBox(width: 12),
@@ -409,7 +457,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           icon: Icons.favorite,
           iconColor: const Color(0xFF16A34A),
           iconBg: const Color(0xFFDCFCE7),
-          value: '46',
+          value: _healthyAnimals.toString(),
           label: 'Healthy',
         )),
       ],
@@ -422,6 +470,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     required Color iconBg,
     required String value,
     required String label,
+    Widget? customIconWidget,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
@@ -445,7 +494,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               color: iconBg,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 20, color: iconColor),
+            child: Center(
+              child: customIconWidget ?? Icon(icon, size: 20, color: iconColor),
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -467,7 +518,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Alert Banner ───────────────────────────────
+  // â”€â”€ Alert Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildAlertBanner() {
     return GestureDetector(
       onTap: () => Navigator.push(context,
@@ -538,7 +589,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Section Headers ────────────────────────────
+  // â”€â”€ Section Headers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
@@ -577,7 +628,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Quick Actions ──────────────────────────────
+  // â”€â”€ Quick Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildQuickActions() {
     final actions = [
       _QuickAction(
@@ -644,7 +695,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             color: a.bg,
                             borderRadius: BorderRadius.circular(13),
                           ),
-                          child: Icon(a.icon, size: 22, color: a.color),
+                          child: a.label == 'Animals'
+                              ? Center(child: CowHeadIcon(size: 22, color: a.color))
+                              : Icon(a.icon, size: 22, color: a.color),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -664,7 +717,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Breed Carousel ─────────────────────────────
+  // â”€â”€ Breed Carousel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildBreedCarousel() {
     return SizedBox(
       height: 170,
@@ -711,7 +764,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 errorBuilder: (_, __, ___) => Container(
                   height: 95,
                   color: breed.color,
-                  child: Icon(Icons.pets, color: breed.accent, size: 36),
+                  child: Center(child: CowHeadIcon(size: 36, color: breed.accent)),
                 ),
               ),
             ),
@@ -760,21 +813,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Activity Card ──────────────────────────────
+  // â”€â”€ Activity Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildActivityCard() {
     final items = [
       const _ActivityItem(
           icon: Icons.check_circle_outline,
           color: Color(0xFF16A34A),
-          text: 'Morning milking completed — 168 L'),
+          text: 'Morning milking completed â€” 168 L'),
       const _ActivityItem(
           icon: Icons.vaccines_outlined,
           color: Color(0xFF6366F1),
-          text: 'Vaccination: Lola (H-01) ✓'),
+          text: 'Vaccination: Lola (H-01) âœ“'),
       const _ActivityItem(
           icon: Icons.grass_outlined,
           color: Color(0xFFD97706),
-          text: 'Feed stock refilled — Hay 200 kg'),
+          text: 'Feed stock refilled â€” Hay 200 kg'),
       const _ActivityItem(
           icon: Icons.warning_amber_rounded,
           color: Color(0xFFDC2626),
@@ -835,7 +888,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Milk Summary Card ──────────────────────────
+  // â”€â”€ Milk Summary Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildMilkSummaryCard() {
     return GestureDetector(
       onTap: () => Navigator.push(context,
@@ -917,7 +970,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Text(
-                              '↑ 4.2% from yesterday',
+                              'â†‘ 4.2% from yesterday',
                               style: TextStyle(
                                   color: Color(0xFF86EFAC),
                                   fontSize: 11,
@@ -953,7 +1006,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 }
 
 
-// ── Data models ────────────────────────────────────
+// â”€â”€ Data models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _HeroSlide {
   final String image;
   final String tag;
@@ -1006,3 +1059,5 @@ class _ActivityItem {
   const _ActivityItem(
       {required this.icon, required this.color, required this.text});
 }
+
+
