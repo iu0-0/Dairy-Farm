@@ -119,9 +119,9 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
       color: Colors.white,
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           Text(
             'REFERENCE CATALOG',
             style: TextStyle(
@@ -235,9 +235,9 @@ class _BreedCatalogScreenState extends State<BreedCatalogScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF374151)),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 'Check your connection and try again.',
-                style: const TextStyle(color: Color(0xFF6B7280)),
+                style: TextStyle(color: Color(0xFF6B7280)),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),

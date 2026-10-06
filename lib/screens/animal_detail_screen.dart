@@ -259,9 +259,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 0.5),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Icon(Icons.stars, color: Colors.white, size: 12),
                         SizedBox(width: 4),
                         Text(
@@ -540,9 +540,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               Text(
                 'Last Vet Visit',
                 style: TextStyle(
@@ -564,11 +564,11 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
           // Progress bar
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
+            child: const LinearProgressIndicator(
               value: 0.88,
               minHeight: 7,
-              backgroundColor: const Color(0xFFE5E7EB),
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0C3823)),
+              backgroundColor: Color(0xFFE5E7EB),
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0C3823)),
             ),
           ),
           const SizedBox(height: 10),
@@ -655,12 +655,12 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Row
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Recent Activity',
                   style: TextStyle(
                     fontSize: 16,
@@ -669,7 +669,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                   ),
                 ),
                 Row(
-                  children: const [
+                  children: [
                     Text(
                       'View Full History',
                       style: TextStyle(
@@ -1455,9 +1455,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                       child: const Icon(Icons.thermostat, color: Color(0xFFD97706), size: 18),
                     ),
                     const SizedBox(width: 10),
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text('TEMP', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF6B7280))),
                         SizedBox(height: 2),
                         Text('101.5 °F', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
@@ -1487,9 +1487,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                       child: const Icon(Icons.favorite_border, color: Color(0xFFDC2626), size: 18),
                     ),
                     const SizedBox(width: 10),
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text('HEART RATE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF6B7280))),
                         SizedBox(height: 2),
                         Text('64 bpm', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
@@ -1523,9 +1523,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                       child: const Icon(Icons.air_outlined, color: Color(0xFF4F46E5), size: 18),
                     ),
                     const SizedBox(width: 10),
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text('RESPIRATION', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF6B7280))),
                         SizedBox(height: 2),
                         Text('22 / min', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
@@ -1555,9 +1555,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                       child: const Icon(Icons.health_and_safety_outlined, color: Color(0xFF059669), size: 18),
                     ),
                     const SizedBox(width: 10),
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text('HEALTH SCORE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF6B7280))),
                         SizedBox(height: 2),
                         Text('88 / 100', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF059669))),
