@@ -1059,5 +1059,3 @@ class _ActivityItem {
   const _ActivityItem(
       {required this.icon, required this.color, required this.text});
 }
-
-
