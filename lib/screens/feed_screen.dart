@@ -199,10 +199,10 @@ class _FeedScreenState extends State<FeedScreen> {
             child: const Icon(Icons.grass_outlined, color: _primaryGreen, size: 28),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: const [
                 Text(
                   'Krishna Feed & Nutrition',
                   style: TextStyle(
@@ -348,11 +348,11 @@ class _FeedScreenState extends State<FeedScreen> {
           ),
         ],
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: [
+            children: const [
               Icon(Icons.analytics_outlined, color: _primaryGreen, size: 20),
               SizedBox(width: 8),
               Text(
@@ -365,18 +365,18 @@ class _FeedScreenState extends State<FeedScreen> {
               ),
             ],
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: const [
               Text('Monthly Spent (Est.)', style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
               Text('₹ 1,45,000', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: const [
               Text('Cost per Litre Milk', style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
               Text('₹ 22.4 / L', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF15803D))),
             ],
@@ -386,3 +386,8 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 }
+
+
+//////////////////////
+
+feed_screen.dart
