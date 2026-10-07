@@ -14,10 +14,10 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _userName = 'Rahul Sharma';
-  final String _userRole = 'Verified Customer Account';
+  String _userName = 'Karan Garchar';
+  String _userRole = 'Verified Customer Account';
   String _userPhone = '+91 98765 43210';
-  String _userLocation = 'Pune, Maharashtra';
+  String _userLocation = 'Junagadh, Gujarat';
   bool _notificationsEnabled = true;
 
   static const Color _primaryGreen = Color(0xFF0C3823);
@@ -47,41 +47,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // ── Customer Details Section ──
             _buildSectionLabel('CUSTOMER DASHBOARD'),
             _buildMenuCard([
-              _buildMenuRow(
-                iconBg: const Color(0xFFDCFCE7),
-                iconColor: const Color(0xFF16A34A),
-                icon: Icons.shopping_bag_outlined,
-                title: 'My Orders & Subscriptions',
-                subtitle: 'Track daily milk delivery & order history',
-                onTap: () => _showInfoSnack('My Orders'),
-              ),
-              _buildDivider(),
-              _buildMenuRow(
-                iconBg: const Color(0xFFE0F2FE),
-                iconColor: const Color(0xFF0284C7),
-                icon: Icons.location_on_outlined,
-                title: 'Delivery Addresses',
-                subtitle: 'Manage home & office delivery locations',
-                onTap: () => _showInfoSnack('Delivery Addresses'),
-              ),
-              _buildDivider(),
-              _buildMenuRow(
-                iconBg: const Color(0xFFF3E8FF),
-                iconColor: const Color(0xFF9333EA),
-                icon: Icons.payment_outlined,
-                title: 'Payment Methods',
-                subtitle: 'UPI, Debit/Credit cards & Net banking',
-                onTap: () => _showInfoSnack('Payment Methods'),
-              ),
-              _buildDivider(),
-              _buildMenuRow(
-                iconBg: const Color(0xFFFEF3C7),
-                iconColor: const Color(0xFFD97706),
-                icon: Icons.favorite_border,
-                title: 'My Wishlist',
-                subtitle: 'Saved dairy products & seasonal offers',
-                onTap: () => _showInfoSnack('Wishlist'),
-              ),
+              // _buildMenuRow(
+              //   iconBg: const Color(0xFFDCFCE7),
+              //   iconColor: const Color(0xFF16A34A),
+              //   icon: Icons.shopping_bag_outlined,
+              //   title: 'My Orders & Subscriptions',
+              //   subtitle: 'Track daily milk delivery & order history',
+              //   onTap: () => _showInfoSnack('My Orders'),
+              // ),
+              // _buildDivider(),
+              // _buildMenuRow(
+              //   iconBg: const Color(0xFFE0F2FE),
+              //   iconColor: const Color(0xFF0284C7),
+              //   icon: Icons.location_on_outlined,
+              //   title: 'Delivery Addresses',
+              //   subtitle: 'Manage home & office delivery locations',
+              //   onTap: () => _showInfoSnack('Delivery Addresses'),
+              // ),
+              // _buildDivider(),
+              // _buildMenuRow(
+              //   iconBg: const Color(0xFFF3E8FF),
+              //   iconColor: const Color(0xFF9333EA),
+              //   icon: Icons.payment_outlined,
+              //   title: 'Payment Methods',
+              //   subtitle: 'UPI, Debit/Credit cards & Net banking',
+              //   onTap: () => _showInfoSnack('Payment Methods'),
+              // ),
+              // _buildDivider(),
+              // _buildMenuRow(
+              //   iconBg: const Color(0xFFFEF3C7),
+              //   iconColor: const Color(0xFFD97706),
+              //   icon: Icons.favorite_border,
+              //   title: 'My Wishlist',
+              //   subtitle: 'Saved dairy products & seasonal offers',
+              //   onTap: () => _showInfoSnack('Wishlist'),
+              // ),
               _buildDivider(),
               _buildMenuRow(
                 iconBg: const Color(0xFFE0F2FE),
@@ -303,9 +303,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: const Color(0xFFFDE68A), width: 1),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [
+              children: const [
                 Icon(Icons.workspace_premium_rounded, size: 15, color: Color(0xFFB45309)),
                 SizedBox(width: 6),
                 Text(
@@ -630,11 +630,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: InkWell(
           onTap: () => _showLogoutDialog(),
           borderRadius: BorderRadius.circular(16),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(vertical: 14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: const [
                 Icon(Icons.logout_rounded, color: Color(0xFFDC2626), size: 20),
                 SizedBox(width: 10),
                 Text(
@@ -709,3 +709,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
+
+///////////////////////
+profile_screen.dart
